@@ -10,7 +10,7 @@ Neon-style iOS app for an [OpenFlexure](https://openflexure.org) microscope **v2
 ## This folder layout
 
 - **`OpenFluxIOS.xcodeproj`** — open this in Xcode.
-- **`OpenFluxIOS/`** — Swift sources and `Assets.xcassets` (Xcode **File System Synchronized** group: new `.swift` files here are picked up automatically).
+- **`App/`** — Swift sources and `Assets.xcassets` (Xcode **File System Synchronized** group: new `.swift` files here are picked up automatically).
 - **`Docs/`** — this README, [`API_PATHS.md`](API_PATHS.md), [`ATS-Info-fragment.md`](ATS-Info-fragment.md).
 
 ## App Transport Security (local HTTP)
@@ -46,4 +46,4 @@ Design reference: `../../../assets/image-256ff73d-c754-4511-8bd3-850a6895a940.pn
 
 ## Entry point
 
-`@main` is **`OpenFluxIOSApp`** in `OpenFluxIOS/OpenFluxIOSApp.swift`; it hosts **`MainMicroscopeView`**.
+`@main` is **`OpenFluxIOSApp`** in `App/OpenFluxIOSApp.swift`; it hosts **`MainMicroscopeView`**.

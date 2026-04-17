@@ -13,7 +13,7 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		1314E5B22F90CCDC00798EC7 /* OpenFluxIOS */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = OpenFluxIOS;
+			path = App;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */

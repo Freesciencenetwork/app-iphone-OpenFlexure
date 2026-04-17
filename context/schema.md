@@ -7,4 +7,4 @@
 - **openflexure**: `scripts/openflexure_stage.sh` + env `OPENFLEXURE_BASE` (default `http://microscope.local:5000`); cmds `test|get|move|zero|action|demo-axes`
 - **diagnostics**: `scripts/openflexure_diagnose.sh`; hardware signals from `GET /api/v2/instrument/configuration` (server version, Sangaboard board/firmware, camera board); live pose `.../state/stage/position`; `inventory` parses `GET /api/v2/` WoT JSON for readproperty URLs
 - **camera test**: `scripts/openflexure_camera_test.sh`; read-only: `GET /api/v2/streams/snapshot` (JPEG), `GET /api/v2/instrument/camera/lst` (PNG); writes: `POST /api/v2/actions/camera/capture/`; preview: `.../preview/start`, `.../preview/stop`
-- **iOS app**: [`ios/OpenFluxIOS/OpenFluxIOS.xcodeproj`](ios/OpenFluxIOS/OpenFluxIOS.xcodeproj) — Swift in `ios/OpenFluxIOS/OpenFluxIOS/`; docs in [`ios/OpenFluxIOS/Docs/README.md`](ios/OpenFluxIOS/Docs/README.md)
+- **iOS app**: [`ios/OpenFluxIOS/OpenFluxIOS.xcodeproj`](ios/OpenFluxIOS/OpenFluxIOS.xcodeproj) — Swift in `ios/OpenFluxIOS/App/`; docs in [`ios/OpenFluxIOS/Docs/README.md`](ios/OpenFluxIOS/Docs/README.md)
