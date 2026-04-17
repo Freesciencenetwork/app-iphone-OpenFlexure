@@ -1,0 +1,71 @@
+# Local agent / IDE (not shared)
+.claude/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Xcode
+build/
+DerivedData/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+xcuserdata/
+*.xccheckout
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM
+*.dSYM.zip
+*.xcresult
+*.xcarchive
+timeline.xctimeline
+playground.xcworkspace
+*.xcbkptlist
+*.xcscmblueprint
+
+# Local secrets / machine-specific config (keep templates in git)
+.env
+.env.*
+*.xcconfig.local
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Packages/
+Package.pins
+Package.resolved
+
+# CocoaPods
+Pods/
+
+# Carthage
+Carthage/Build/
+
+# Accio
+Dependencies/
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# IDEs
+.idea/
+*.swp
+*~
+
+# Merge / patch artifacts
+*.orig
+*.rej
+
+# Code Injection (third-party)
+iOSInjectionProject/
+
+# Local-only plist overrides (uncomment if yours is machine-specific)
+# OpenFluxIOS-Info.plist
