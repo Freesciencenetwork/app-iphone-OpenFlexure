@@ -5,7 +5,7 @@ Neon-style iOS app for an [OpenFlexure](https://openflexure.org) microscope **v2
 ## Requirements
 
 - **Xcode 15+** (iOS **17**+ recommended for `@Observable` / `@Bindable`).
-- Device or simulator on the **same network** as the Pi (e.g. `http://microscope.local:5000`).
+- Device or simulator on the **same network** as the Pi (current working endpoint: `http://169.254.103.118:5000`; mDNS installs may also use `http://microscope.local:5000`).
 
 ## This folder layout
 
@@ -19,6 +19,7 @@ OpenFlexure uses **cleartext HTTP** on the LAN. In the **OpenFluxIOS** target �
 
 | Key | Type | Value |
 |-----|------|--------|
+| **Privacy - Local Network Usage Description** (`NSLocalNetworkUsageDescription`) | String | Required for iOS local-network access |
 | **App Transport Security Settings** (`NSAppTransportSecurity`) | Dictionary | |
 | ↳ **Allows Local Networking** (`NSAllowsLocalNetworking`) | Boolean | **YES** |
 
@@ -27,7 +28,7 @@ See [`Docs/ATS-Info-fragment.md`](ATS-Info-fragment.md) for the plist fragment.
 ## Run
 
 1. Open **`OpenFluxIOS.xcodeproj`**.
-2. Build and run; set the microscope base URL via the **gear** icon (default `http://microscope.local:5000`).
+2. Build and run; set the microscope base URL via the **gear** icon if the default `http://169.254.103.118:5000` changes.
 3. **Stage**: D-pad / focus → `POST …/actions/stage/move/`.
 4. **Photo** → `POST …/actions/camera/capture/` (`ios_capture_<timestamp>`).
 5. Optional **GPU preview** after connect in Settings.
@@ -35,6 +36,14 @@ See [`Docs/ATS-Info-fragment.md`](ATS-Info-fragment.md) for the plist fragment.
 ## Shell helpers (repo root)
 
 Same API as the bash tools under [`../../../scripts`](../../../scripts) (e.g. `openflexure_stage.sh`, `openflexure_camera_test.sh`).
+
+For browser access to the Pi web UI when the direct link-local URL fails, use the repo-root proxy:
+
+```sh
+python3 scripts/openflexure_browser_proxy.py --target http://169.254.103.118:5000 --port 5502 --verbose
+```
+
+Then open `http://127.0.0.1:5502/?fresh=stream`.
 
 ## Reference API
 

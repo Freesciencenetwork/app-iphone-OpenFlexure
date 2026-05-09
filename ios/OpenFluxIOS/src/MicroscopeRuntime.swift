@@ -4,7 +4,7 @@ import UIKit
 
 @MainActor
 final class MicroscopeRuntime: ObservableObject {
-    @Published var baseURLString: String = "http://microscope.local:5000"
+    @Published var baseURLString: String = "http://169.254.103.118:5000"
     @Published var stepX: Int = 50
     @Published var stepY: Int = 50
     @Published var stepZ: Int = 10
@@ -32,6 +32,14 @@ final class MicroscopeRuntime: ObservableObject {
     private var heartbeatTask: Task<Void, Never>?
     private var snapshotTask: Task<Void, Never>?
     private var didStartPreviewForSession: Bool = false
+
+    private var dbgHeartbeatTicks = 0
+    private var dbgSnapshotTicks = 0
+
+    private func debugHostHint() -> String {
+        let s = baseURLString.trimmingCharacters(in: .whitespacesAndNewlines)
+        return URL(string: s)?.host ?? "bad-url"
+    }
 
     /// Call after changing connection-related settings so preview can run again if enabled.
     func applySettingsAndReconnect() {
@@ -61,6 +69,20 @@ final class MicroscopeRuntime: ObservableObject {
         return OpenFlexureClient(baseURL: u, timeoutSeconds: TimeInterval(timeoutSeconds))
     }
 
+    private static let stageAxisLimitXY = 100
+    private static let stageAxisLimitZ = 20
+
+    /// Relative deltas clamped so position stays within X/Y ±100 and Z ±20.
+    private func clampedRelativeDeltas(from pos: StagePosition, dx: Int, dy: Int, dz: Int) -> (Int, Int, Int) {
+        let tx = pos.x + dx
+        let ty = pos.y + dy
+        let tz = pos.z + dz
+        let cx = min(max(tx, -Self.stageAxisLimitXY), Self.stageAxisLimitXY)
+        let cy = min(max(ty, -Self.stageAxisLimitXY), Self.stageAxisLimitXY)
+        let cz = min(max(tz, -Self.stageAxisLimitZ), Self.stageAxisLimitZ)
+        return (cx - pos.x, cy - pos.y, cz - pos.z)
+    }
+
     private func heartbeatLoop() async {
         while !Task.isCancelled {
             do {
@@ -77,11 +99,38 @@ final class MicroscopeRuntime: ObservableObject {
                         try await c.startGPUPreview(window: previewWindow)
                     } catch {
                         lastError = "Preview: \(error.localizedDescription)"
+                        // #region agent log
+                        DebugSessionLogger.log(
+                            hypothesisId: "H5",
+                            location: "MicroscopeRuntime.swift:heartbeatLoop",
+                            message: "gpu_preview_start_failed",
+                            data: ["error": error.localizedDescription, "host": debugHostHint()]
+                        )
+                        // #endregion agent log
                     }
                 }
+                // #region agent log
+                dbgHeartbeatTicks += 1
+                if dbgHeartbeatTicks == 1 || dbgHeartbeatTicks % 6 == 0 {
+                    DebugSessionLogger.log(
+                        hypothesisId: "H1",
+                        location: "MicroscopeRuntime.swift:heartbeatLoop",
+                        message: "ping_ok",
+                        data: ["host": debugHostHint(), "tick": "\(dbgHeartbeatTicks)", "gpuPreviewOn": "\(startGPUPreviewAfterConnect)"]
+                    )
+                }
+                // #endregion agent log
             } catch {
                 connected = false
                 lastError = error.localizedDescription
+                // #region agent log
+                DebugSessionLogger.log(
+                    hypothesisId: "H1",
+                    location: "MicroscopeRuntime.swift:heartbeatLoop",
+                    message: "ping_fail",
+                    data: ["host": debugHostHint(), "error": error.localizedDescription]
+                )
+                // #endregion agent log
             }
             try? await Task.sleep(for: .seconds(2))
         }
@@ -89,29 +138,66 @@ final class MicroscopeRuntime: ObservableObject {
 
     private func snapshotLoop() async {
         while !Task.isCancelled {
+            dbgSnapshotTicks += 1
             if connected {
                 do {
                     let c = try client()
                     let data = try await c.fetchSnapshotJPEG()
-                    if let img = UIImage(data: data) {
+                    let img = UIImage(data: data)
+                    if let img {
                         previewImage = img
                     }
+                    // #region agent log
+                    if dbgSnapshotTicks % 28 == 0 {
+                        DebugSessionLogger.log(
+                            hypothesisId: "H2",
+                            location: "MicroscopeRuntime.swift:snapshotLoop",
+                            message: "snapshot_fetch_ok",
+                            data: [
+                                "host": debugHostHint(),
+                                "jpegBytes": "\(data.count)",
+                                "uiImageOk": "\(img != nil)",
+                                "tick": "\(dbgSnapshotTicks)"
+                            ]
+                        )
+                    }
+                    // #endregion agent log
                 } catch {
                     // keep last good frame
+                    // #region agent log
+                    DebugSessionLogger.log(
+                        hypothesisId: "H2",
+                        location: "MicroscopeRuntime.swift:snapshotLoop",
+                        message: "snapshot_fetch_failed",
+                        data: ["host": debugHostHint(), "error": error.localizedDescription, "tick": "\(dbgSnapshotTicks)"]
+                    )
+                    // #endregion agent log
                 }
+            } else {
+                // #region agent log
+                if dbgSnapshotTicks % 45 == 1 {
+                    DebugSessionLogger.log(
+                        hypothesisId: "H3",
+                        location: "MicroscopeRuntime.swift:snapshotLoop",
+                        message: "snapshot_skipped_not_connected",
+                        data: ["host": debugHostHint(), "tick": "\(dbgSnapshotTicks)"]
+                    )
+                }
+                // #endregion agent log
             }
             try? await Task.sleep(for: .milliseconds(140))
         }
     }
 
     func move(dx: Int, dy: Int, dz: Int) async {
-        guard dx != 0 || dy != 0 || dz != 0 else { return }
+        let (adx, ady, adz) = clampedRelativeDeltas(from: position, dx: dx, dy: dy, dz: dz)
+        guard adx != 0 || ady != 0 || adz != 0 else { return }
         busyMoving = true
         lastError = nil
         defer { busyMoving = false }
         do {
             let c = try client()
-            try await c.moveStage(StageMoveRequest(x: dx, y: dy, z: dz))
+            try await c.moveStage(StageMoveRequest(x: adx, y: ady, z: adz))
             position = try await c.getStagePosition()
         } catch {
             lastError = error.localizedDescription
@@ -206,6 +292,7 @@ final class MicroscopeRuntime: ObservableObject {
         do {
             let c = try client()
             let startPosition = position
+            var stagePos = position
 
             var autofocusHref: String?
             if plan.autofocusEachTile {
@@ -233,14 +320,25 @@ final class MicroscopeRuntime: ObservableObject {
                     capturedTiles += 1
 
                     if column < plan.columns - 1 {
-                        try await c.moveStage(
-                            StageMoveRequest(x: stepDirection * plan.stepX, y: 0, z: 0)
+                        let (adx, ady, adz) = clampedRelativeDeltas(
+                            from: stagePos,
+                            dx: stepDirection * plan.stepX,
+                            dy: 0,
+                            dz: 0
                         )
+                        if adx != 0 || ady != 0 || adz != 0 {
+                            try await c.moveStage(StageMoveRequest(x: adx, y: ady, z: adz))
+                            stagePos = try await c.getStagePosition()
+                        }
                     }
                 }
 
                 if row < plan.rows - 1 {
-                    try await c.moveStage(StageMoveRequest(x: 0, y: plan.stepY, z: 0))
+                    let (adx, ady, adz) = clampedRelativeDeltas(from: stagePos, dx: 0, dy: plan.stepY, dz: 0)
+                    if adx != 0 || ady != 0 || adz != 0 {
+                        try await c.moveStage(StageMoveRequest(x: adx, y: ady, z: adz))
+                        stagePos = try await c.getStagePosition()
+                    }
                 }
             }
 

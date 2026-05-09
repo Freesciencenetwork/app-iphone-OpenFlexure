@@ -1,6 +1,6 @@
 # OpenFlexure v2 API paths used in this repo
 
-Prefix every path with your base URL, e.g. `http://microscope.local:5000`.
+Prefix every path with your base URL, e.g. `http://169.254.103.118:5000` or `http://microscope.local:5000` when mDNS is working.
 
 Trailing slashes: this repo uses **trailing slashes on POST action URLs** where noted; your server may accept both forms.
 

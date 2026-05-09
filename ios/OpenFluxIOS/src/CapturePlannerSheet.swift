@@ -127,8 +127,8 @@ struct CapturePlannerSheet: View {
 
             Stepper("Rows: \(mosaicRows)", value: $mosaicRows, in: 1...10, step: 1)
             Stepper("Columns: \(mosaicColumns)", value: $mosaicColumns, in: 1...10, step: 1)
-            Stepper("Step X: \(mosaicStepX)", value: $mosaicStepX, in: 1...5000, step: 1)
-            Stepper("Step Y: \(mosaicStepY)", value: $mosaicStepY, in: 1...5000, step: 1)
+            Stepper("Step X: \(mosaicStepX)", value: $mosaicStepX, in: 1...100, step: 1)
+            Stepper("Step Y: \(mosaicStepY)", value: $mosaicStepY, in: 1...100, step: 1)
             Toggle("Autofocus each tile", isOn: $mosaicAutofocusEachTile)
             Toggle("Return to start when done", isOn: $mosaicReturnToStart)
 

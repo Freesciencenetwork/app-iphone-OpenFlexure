@@ -15,9 +15,9 @@ struct ConnectionSettingsView: View {
                 }
 
                 Section("Stage steps (relative)") {
-                    Stepper("X step: \(model.stepX)", value: $model.stepX, in: 1...5000, step: 1)
-                    Stepper("Y step: \(model.stepY)", value: $model.stepY, in: 1...5000, step: 1)
-                    Stepper("Z (focus) step: \(model.stepZ)", value: $model.stepZ, in: 1...2000, step: 1)
+                    Stepper("X step: \(model.stepX)", value: $model.stepX, in: 1...100, step: 1)
+                    Stepper("Y step: \(model.stepY)", value: $model.stepY, in: 1...100, step: 1)
+                    Stepper("Z (focus) step: \(model.stepZ)", value: $model.stepZ, in: 1...20, step: 1)
                 }
 
                 Section("HTTP") {
